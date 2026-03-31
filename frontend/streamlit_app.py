@@ -16,6 +16,50 @@ BANNER_PATH = PROJECT_ROOT / "Churn Prediction Engine.png"
 AUTHOR_IMAGE_PATH = PROJECT_ROOT / "frontend" / "assets" / "okon_prince.png"
 TESTING_PACK_PATH = PROJECT_ROOT / "artifacts" / "sample_outputs" / "model_testing_pack.csv"
 YELLOW_SCALE = ["#3B2D00", "#7A5C00", "#D7A700", "#F4C430", "#FFE27A"]
+DARK_THEME = {
+    "bg": "#050505",
+    "bg_soft": "#0d0d0d",
+    "card": "rgba(18, 18, 18, 0.94)",
+    "card_soft": "rgba(25, 25, 25, 0.96)",
+    "ink": "#fff5bf",
+    "muted": "#d8c77c",
+    "accent": "#f4c430",
+    "accent_soft": "rgba(244, 196, 48, 0.14)",
+    "border": "rgba(244, 196, 48, 0.32)",
+    "shadow": "rgba(244, 196, 48, 0.12)",
+    "sidebar": "linear-gradient(180deg, #0a0a0a 0%, #131313 100%)",
+    "app_bg": """
+        radial-gradient(circle at top right, rgba(244, 196, 48, 0.18), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(244, 196, 48, 0.10), transparent 28%),
+        linear-gradient(180deg, #050505 0%, #090909 100%)
+    """,
+    "chart_bg": "#111111",
+    "score_low": "#ffde59",
+    "score_medium": "#f4c430",
+    "score_high": "#ff9f1c",
+}
+LIGHT_THEME = {
+    "bg": "#fffdf5",
+    "bg_soft": "#fff7cf",
+    "card": "rgba(255, 252, 237, 0.96)",
+    "card_soft": "rgba(255, 248, 214, 0.98)",
+    "ink": "#221b00",
+    "muted": "#7a6400",
+    "accent": "#b8860b",
+    "accent_soft": "rgba(184, 134, 11, 0.12)",
+    "border": "rgba(184, 134, 11, 0.28)",
+    "shadow": "rgba(184, 134, 11, 0.16)",
+    "sidebar": "linear-gradient(180deg, #fff7cf 0%, #fff0b8 100%)",
+    "app_bg": """
+        radial-gradient(circle at top right, rgba(244, 196, 48, 0.18), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(244, 196, 48, 0.12), transparent 28%),
+        linear-gradient(180deg, #fffdf5 0%, #fff7de 100%)
+    """,
+    "chart_bg": "#fff8e6",
+    "score_low": "#807000",
+    "score_medium": "#b8860b",
+    "score_high": "#d97706",
+}
 
 
 st.set_page_config(
@@ -56,31 +100,29 @@ def encode_image(path: str) -> str:
     return base64.b64encode(Path(path).read_bytes()).decode("utf-8")
 
 
-def inject_styles() -> None:
+def inject_styles(theme_mode: str) -> None:
+    theme = DARK_THEME if theme_mode == "Dark" else LIGHT_THEME
     st.markdown(
-        """
+        f"""
         <style>
         :root {
-            --bg: #050505;
-            --bg-soft: #0d0d0d;
-            --card: rgba(18, 18, 18, 0.94);
-            --card-soft: rgba(25, 25, 25, 0.96);
-            --ink: #fff5bf;
-            --muted: #d8c77c;
-            --accent: #f4c430;
-            --accent-soft: rgba(244, 196, 48, 0.14);
-            --border: rgba(244, 196, 48, 0.32);
-            --shadow: rgba(244, 196, 48, 0.12);
+            --bg: {theme["bg"]};
+            --bg-soft: {theme["bg_soft"]};
+            --card: {theme["card"]};
+            --card-soft: {theme["card_soft"]};
+            --ink: {theme["ink"]};
+            --muted: {theme["muted"]};
+            --accent: {theme["accent"]};
+            --accent-soft: {theme["accent_soft"]};
+            --border: {theme["border"]};
+            --shadow: {theme["shadow"]};
         }
         .stApp {
-            background:
-                radial-gradient(circle at top right, rgba(244, 196, 48, 0.18), transparent 22%),
-                radial-gradient(circle at bottom left, rgba(244, 196, 48, 0.10), transparent 28%),
-                linear-gradient(180deg, #050505 0%, #090909 100%);
+            background: {theme["app_bg"]};
             color: var(--ink);
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0a0a0a 0%, #131313 100%);
+            background: {theme["sidebar"]};
             border-right: 1px solid var(--border);
         }
         [data-testid="stSidebar"] * {
@@ -193,6 +235,10 @@ def inject_styles() -> None:
     )
 
 
+def current_theme(theme_mode: str) -> dict[str, str]:
+    return DARK_THEME if theme_mode == "Dark" else LIGHT_THEME
+
+
 def render_banner() -> None:
     if BANNER_PATH.exists():
         banner_b64 = encode_image(str(BANNER_PATH))
@@ -236,7 +282,6 @@ def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> 
     st.markdown(
         """
         <div class="hero-card">
-            <h1>Production-Ready Churn Prediction System</h1>
             <p>
                 This platform translates customer behavior into practical retention intelligence. It scores churn risk,
                 estimates confidence, surfaces business-friendly drivers, and recommends concrete actions teams can take
@@ -293,7 +338,8 @@ def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> 
     st.json(metrics_payload)
 
 
-def render_prediction_page(predictor: PredictorService) -> None:
+def render_prediction_page(predictor: PredictorService, theme_mode: str) -> None:
+    theme = current_theme(theme_mode)
     st.subheader("Manual Customer Prediction")
     st.markdown("<p class='caption-note'>Enter a full customer profile and the system will return risk, confidence, key drivers, and retention recommendations.</p>", unsafe_allow_html=True)
 
@@ -364,7 +410,13 @@ def render_prediction_page(predictor: PredictorService) -> None:
 
     if submitted:
         result = predictor.predict_record(payload)
-        score_color = "#ffde59" if result["risk_band"] == "Low" else "#f4c430" if result["risk_band"] == "Medium" else "#ff9f1c"
+        score_color = (
+            theme["score_low"]
+            if result["risk_band"] == "Low"
+            else theme["score_medium"]
+            if result["risk_band"] == "Medium"
+            else theme["score_high"]
+        )
         st.markdown(
             f"""
             <div class="content-card">
@@ -401,9 +453,9 @@ def render_prediction_page(predictor: PredictorService) -> None:
                 color_continuous_scale=YELLOW_SCALE,
                 title="Per-Class Probability Distribution",
             ).update_layout(
-                paper_bgcolor="#111111",
-                plot_bgcolor="#111111",
-                font_color="#fff5bf",
+                paper_bgcolor=theme["chart_bg"],
+                plot_bgcolor=theme["chart_bg"],
+                font_color=theme["ink"],
             ),
             use_container_width=True,
         )
@@ -445,7 +497,8 @@ def render_batch_page(predictor: PredictorService) -> None:
         )
 
 
-def render_insights_page(predictor: PredictorService) -> None:
+def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
+    theme = current_theme(theme_mode)
     st.subheader("Model Insights")
     train_df = load_training_data()
     model_info = predictor.model_info()
@@ -458,7 +511,11 @@ def render_insights_page(predictor: PredictorService) -> None:
         title="Observed Churn Risk Distribution",
         color_discrete_sequence=["#f4c430", "#eab308", "#ca8a04", "#fde68a", "#facc15", "#f59e0b"],
     )
-    histogram.update_layout(paper_bgcolor="#111111", plot_bgcolor="#111111", font_color="#fff5bf")
+    histogram.update_layout(
+        paper_bgcolor=theme["chart_bg"],
+        plot_bgcolor=theme["chart_bg"],
+        font_color=theme["ink"],
+    )
     st.plotly_chart(histogram, use_container_width=True)
 
     importance_chart = px.bar(
@@ -470,7 +527,11 @@ def render_insights_page(predictor: PredictorService) -> None:
         color_continuous_scale=YELLOW_SCALE,
         title="Top Global Feature Drivers",
     )
-    importance_chart.update_layout(paper_bgcolor="#111111", plot_bgcolor="#111111", font_color="#fff5bf")
+    importance_chart.update_layout(
+        paper_bgcolor=theme["chart_bg"],
+        plot_bgcolor=theme["chart_bg"],
+        font_color=theme["ink"],
+    )
     st.plotly_chart(importance_chart, use_container_width=True)
 
     plots_dir = PROJECT_ROOT / "artifacts" / "plots"
@@ -624,7 +685,8 @@ def render_about_page() -> None:
 
 
 def main() -> None:
-    inject_styles()
+    theme_mode = st.sidebar.radio("Appearance", ["Dark", "Light"], index=0)
+    inject_styles(theme_mode)
     predictor = load_predictor()
     metrics_payload = load_metrics()
 
@@ -636,11 +698,11 @@ def main() -> None:
     if page == "Overview":
         render_overview_page(predictor, metrics_payload)
     elif page == "Predict":
-        render_prediction_page(predictor)
+        render_prediction_page(predictor, theme_mode)
     elif page == "Batch Scoring":
         render_batch_page(predictor)
     elif page == "Model Insights":
-        render_insights_page(predictor)
+        render_insights_page(predictor, theme_mode)
     else:
         render_about_page()
 
