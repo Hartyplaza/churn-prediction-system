@@ -825,7 +825,8 @@ def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> 
     st.markdown("### Key Insights")
     st.markdown(
         f"""
-        - The target was automatically detected as an ordinal multiclass problem with classes `{task_detection['classes']}`.
+        - The target was automatically detected as an ordinal multiclass problem with classes `{task_detection['classes']}`. These classes are ordered from lower churn risk to higher churn risk, so a score closer to `-1` is more desirable and a score closer to `5` means the customer is at much higher risk of churning.
+        - In practical terms, `-1` and `1` sit at the safer end of the scale, `2` and `3` represent moderate concern, and `4` and `5` indicate the strongest churn warning signals. There is no `0` class because the source dataset itself is encoded as `[-1, 1, 2, 3, 4, 5]`.
         - `XGBoost` was selected from `{metrics_payload['candidate_model_count']}` candidate models after model comparison.
         - Validation performance was strong with `Weighted F1 = {validation_metrics.get('f1_weighted', 0):.3f}`, `Accuracy = {validation_metrics.get('accuracy', 0):.3f}`, and `QWK = {validation_metrics.get('quadratic_weighted_kappa', 0):.3f}`.
         - The most important risk signals were `{top_features[0]}`, `{top_features[1]}`, and `{top_features[2]}`, which align with customer value, feedback, and membership behavior.
