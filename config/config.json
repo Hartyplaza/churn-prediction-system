@@ -1,0 +1,34 @@
+{
+  "project_name": "Churn Prediction System",
+  "project_version": "1.0.0",
+  "random_seed": 42,
+  "target_column": "churn_risk_score",
+  "id_columns": [
+    "customer_id"
+  ],
+  "leakage_columns": [
+    "customer_id",
+    "Name",
+    "security_no",
+    "referral_id"
+  ],
+  "negative_feedback_values": [
+    "Poor Product Quality",
+    "Poor Website",
+    "Poor Customer Service",
+    "Too many ads",
+    "No reason specified"
+  ],
+  "validation_split": 0.2,
+  "cross_validation_folds": 3,
+  "high_risk_top_n_classes": 2,
+  "feature_importance_top_n": 20,
+  "batch_prediction_output": "artifacts/sample_outputs/batch_predictions.csv",
+  "artifacts": {
+    "bundle_path": "artifacts/model/churn_model_bundle.joblib",
+    "metrics_path": "artifacts/metrics/training_summary.json",
+    "comparison_path": "artifacts/metrics/model_comparison.csv",
+    "feature_importance_path": "artifacts/metrics/feature_importance.csv",
+    "prediction_preview_path": "artifacts/sample_outputs/sample_prediction.json"
+  }
+}

@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.streamlit/secrets.toml
+churn_model.pkl
+scaler.pkl
+submission.csv
+artifacts/logs/
+artifacts/model/*.joblib
+!artifacts/model/churn_model_bundle.joblib
+artifacts/sample_outputs/*.csv
+artifacts/sample_outputs/*.json
+data/processed/*.csv
