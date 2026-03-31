@@ -35,6 +35,7 @@ DARK_THEME = {
         linear-gradient(180deg, #050505 0%, #090909 100%)
     """,
     "chart_bg": "#111111",
+    "chart_text": "#fff5bf",
     "score_low": "#ffde59",
     "score_medium": "#f4c430",
     "score_high": "#ff9f1c",
@@ -63,6 +64,7 @@ LIGHT_THEME = {
         linear-gradient(180deg, #fffdf5 0%, #fff7de 100%)
     """,
     "chart_bg": "#fff8e6",
+    "chart_text": "#050505",
     "score_low": "#807000",
     "score_medium": "#b8860b",
     "score_high": "#d97706",
@@ -492,6 +494,35 @@ def current_theme(theme_mode: str) -> dict[str, str]:
     return DARK_THEME if theme_mode == "Dark" else LIGHT_THEME
 
 
+def apply_plotly_theme(fig, theme: dict[str, str]):
+    fig.update_layout(
+        paper_bgcolor=theme["chart_bg"],
+        plot_bgcolor=theme["chart_bg"],
+        font_color=theme["chart_text"],
+        title_font_color=theme["chart_text"],
+        legend_font_color=theme["chart_text"],
+        hoverlabel={"font": {"color": theme["chart_text"]}},
+        xaxis={
+            "tickfont": {"color": theme["chart_text"]},
+            "title": {"font": {"color": theme["chart_text"]}},
+        },
+        yaxis={
+            "tickfont": {"color": theme["chart_text"]},
+            "title": {"font": {"color": theme["chart_text"]}},
+        },
+        coloraxis_colorbar={
+            "tickfont": {"color": theme["chart_text"]},
+            "title": {"font": {"color": theme["chart_text"]}},
+        },
+    )
+    try:
+        fig.update_traces(textfont_color=theme["chart_text"])
+    except ValueError:
+        pass
+    fig.update_annotations(font_color=theme["chart_text"])
+    return fig
+
+
 def render_banner() -> None:
     if BANNER_PATH.exists():
         banner_b64 = encode_image(str(BANNER_PATH))
@@ -784,17 +815,16 @@ def render_prediction_page(predictor: PredictorService, theme_mode: str) -> None
             }
         )
         st.plotly_chart(
-            px.bar(
+            apply_plotly_theme(
+                px.bar(
                 probability_frame,
                 x="class",
                 y="probability",
                 color="probability",
                 color_continuous_scale=YELLOW_SCALE,
                 title="Per-Class Probability Distribution",
-            ).update_layout(
-                paper_bgcolor=theme["chart_bg"],
-                plot_bgcolor=theme["chart_bg"],
-                font_color=theme["ink"],
+                ),
+                theme,
             ),
             use_container_width=True,
         )
@@ -852,11 +882,7 @@ def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
         title="Observed Churn Risk Distribution",
         color_discrete_sequence=["#f4c430", "#eab308", "#ca8a04", "#fde68a", "#facc15", "#f59e0b"],
     )
-    histogram.update_layout(
-        paper_bgcolor=theme["chart_bg"],
-        plot_bgcolor=theme["chart_bg"],
-        font_color=theme["ink"],
-    )
+    apply_plotly_theme(histogram, theme)
     st.plotly_chart(histogram, use_container_width=True)
 
     importance_chart = px.bar(
@@ -868,11 +894,7 @@ def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
         color_continuous_scale=YELLOW_SCALE,
         title="Top Global Feature Drivers",
     )
-    importance_chart.update_layout(
-        paper_bgcolor=theme["chart_bg"],
-        plot_bgcolor=theme["chart_bg"],
-        font_color=theme["ink"],
-    )
+    apply_plotly_theme(importance_chart, theme)
     st.plotly_chart(importance_chart, use_container_width=True)
 
     confusion_matrix_values = validation_metrics.get("confusion_matrix", [])
@@ -885,10 +907,8 @@ def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
             aspect="auto",
             title="Validation Confusion Matrix",
         )
+        apply_plotly_theme(confusion_chart, theme)
         confusion_chart.update_layout(
-            paper_bgcolor=theme["chart_bg"],
-            plot_bgcolor=theme["chart_bg"],
-            font_color=theme["ink"],
             coloraxis_colorbar_title="Count",
             xaxis_title="Predicted Class",
             yaxis_title="Actual Class",
@@ -911,10 +931,8 @@ def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
             color_discrete_sequence=["#f4c430", "#7a5c00"],
             title="Actual vs Predicted Class Support",
         )
+        apply_plotly_theme(support_chart, theme)
         support_chart.update_layout(
-            paper_bgcolor=theme["chart_bg"],
-            plot_bgcolor=theme["chart_bg"],
-            font_color=theme["ink"],
             xaxis_title="Risk Class",
             yaxis_title="Count",
         )
