@@ -982,8 +982,9 @@ def render_footer() -> None:
         """
         <div class="footer-card">
             <p>© Okon Prince, 2026</p>
-            <p>This project is based on a customer churn dataset hosted on Kaggle.</p>
-            <p>Enquiries: okonp07@gmail.com</p>
+            <p>This project is built using a customer churn dataset hosted on Kaggle by ohmammamia Karina.</p>
+            <p>The project is released under the MIT License.</p>
+            <p>For enquiries, please contact okonp07@gmail.com</p>
         </div>
         """,
         unsafe_allow_html=True,
