@@ -102,135 +102,136 @@ def encode_image(path: str) -> str:
 
 def inject_styles(theme_mode: str) -> None:
     theme = DARK_THEME if theme_mode == "Dark" else LIGHT_THEME
-    st.markdown(
-        f"""
+    css = """
         <style>
-        :root {
-            --bg: {theme["bg"]};
-            --bg-soft: {theme["bg_soft"]};
-            --card: {theme["card"]};
-            --card-soft: {theme["card_soft"]};
-            --ink: {theme["ink"]};
-            --muted: {theme["muted"]};
-            --accent: {theme["accent"]};
-            --accent-soft: {theme["accent_soft"]};
-            --border: {theme["border"]};
-            --shadow: {theme["shadow"]};
-        }
-        .stApp {
-            background: {theme["app_bg"]};
+        :root {{
+            --bg: {bg};
+            --bg-soft: {bg_soft};
+            --card: {card};
+            --card-soft: {card_soft};
+            --ink: {ink};
+            --muted: {muted};
+            --accent: {accent};
+            --accent-soft: {accent_soft};
+            --border: {border};
+            --shadow: {shadow};
+        }}
+        .stApp {{
+            background: {app_bg};
             color: var(--ink);
-        }
-        [data-testid="stSidebar"] {
-            background: {theme["sidebar"]};
+        }}
+        [data-testid="stSidebar"] {{
+            background: {sidebar};
             border-right: 1px solid var(--border);
-        }
-        [data-testid="stSidebar"] * {
+        }}
+        [data-testid="stSidebar"] * {{
             color: var(--ink);
-        }
-        h1, h2, h3, h4, h5 {
+        }}
+        h1, h2, h3, h4, h5 {{
             color: var(--accent);
             letter-spacing: 0.02em;
-        }
-        .hero-card, .content-card, .author-card, .footer-card {
+        }}
+        .hero-card, .content-card, .author-card, .footer-card {{
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 24px;
             box-shadow: 0 18px 40px var(--shadow);
-        }
-        .hero-card {
+        }}
+        .hero-card {{
             padding: 1.4rem 1.6rem;
             margin-bottom: 1rem;
-        }
-        .content-card {
+        }}
+        .content-card {{
             padding: 1.25rem 1.35rem;
             margin-bottom: 1rem;
-        }
-        .metric-card {
+        }}
+        .metric-card {{
             background: var(--card-soft);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1rem 1.1rem;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
             min-height: 130px;
-        }
-        .metric-title {
+        }}
+        .metric-title {{
             font-size: 0.86rem;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 0.4rem;
-        }
-        .metric-value {
+        }}
+        .metric-value {{
             font-size: 2rem;
             font-weight: 700;
             color: var(--accent);
             margin-bottom: 0.35rem;
-        }
-        .metric-note {
+        }}
+        .metric-note {{
             font-size: 0.95rem;
             color: var(--ink);
-        }
-        .project-banner {
+        }}
+        .project-banner {{
             width: 100%;
             border-radius: 22px;
             border: 1px solid var(--border);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.32);
             margin-bottom: 1rem;
-        }
-        .recommendation-card {
+        }}
+        .recommendation-card {{
             background: linear-gradient(90deg, rgba(244, 196, 48, 0.12), rgba(244, 196, 48, 0.03));
             border-left: 5px solid var(--accent);
             border-radius: 16px;
             padding: 0.95rem 1rem;
             margin-bottom: 0.7rem;
             color: var(--ink);
-        }
-        .author-grid {
+        }}
+        .author-grid {{
             display: grid;
             grid-template-columns: minmax(240px, 300px) 1fr;
             gap: 1.6rem;
             align-items: center;
-        }
-        .author-photo-wrap {
+        }}
+        .author-photo-wrap {{
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
-        }
-        .author-photo {
+        }}
+        .author-photo {{
             width: 100%;
             max-width: 280px;
             border-radius: 24px;
             border: 2px solid var(--accent);
             box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
-        }
-        .author-name {
+        }}
+        .author-name {{
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--accent);
             margin-bottom: 0.25rem;
-        }
-        .author-role {
+        }}
+        .author-role {{
             font-size: 1rem;
             color: var(--muted);
             margin-bottom: 1rem;
-        }
-        .footer-card {
+        }}
+        .footer-card {{
             padding: 1rem 1.2rem;
             text-align: center;
             margin-top: 1.5rem;
             color: var(--muted);
-        }
-        .footer-card p {
+        }}
+        .footer-card p {{
             margin: 0.18rem 0;
-        }
-        .caption-note {
+        }}
+        .caption-note {{
             color: var(--muted);
             font-size: 0.95rem;
-        }
+        }}
         </style>
-        """,
+    """.format_map(theme)
+    st.markdown(
+        css,
         unsafe_allow_html=True,
     )
 
