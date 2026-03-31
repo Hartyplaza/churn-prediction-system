@@ -386,6 +386,8 @@ def inject_styles(theme_mode: str) -> None:
         div[data-baseweb="input"] input,
         div[data-baseweb="base-input"] input,
         div[data-baseweb="select"] input,
+        div[data-baseweb="select"] div,
+        div[data-baseweb="select"] p,
         div[data-baseweb="textarea"] textarea,
         div[data-baseweb="select"] span {{
             color: var(--widget-ink) !important;
