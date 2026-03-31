@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit.components.v1 as components
 
 from app.core.config import PROJECT_ROOT, get_settings
 from app.services.predictor import PredictorService
@@ -338,6 +339,135 @@ def inject_styles(theme_mode: str) -> None:
     st.markdown(
         css,
         unsafe_allow_html=True,
+    )
+
+
+def inject_header_runtime_fix(theme_mode: str) -> None:
+    toolbar_ink = "#050505" if theme_mode == "Light" else "#fff5bf"
+    toolbar_hover = "#050505" if theme_mode == "Light" else "#f4c430"
+    toolbar_filter = "brightness(0) saturate(100%)" if theme_mode == "Light" else "none"
+    components.html(
+        f"""
+        <script>
+        (function() {{
+            const ink = "{toolbar_ink}";
+            const hoverInk = "{toolbar_hover}";
+            const iconFilter = "{toolbar_filter}";
+
+            function styleControl(el) {{
+                if (!el) return;
+                el.style.color = ink;
+                el.style.opacity = "1";
+
+                const iconNodes = el.querySelectorAll("svg, svg *, path, circle, rect, line, polyline, polygon, img");
+                iconNodes.forEach((node) => {{
+                    node.style.color = ink;
+                    node.style.fill = ink;
+                    node.style.stroke = ink;
+                    node.style.opacity = "1";
+                    node.style.filter = iconFilter;
+                    node.style.webkitFilter = iconFilter;
+                }});
+
+                el.onmouseenter = () => {{
+                    el.style.color = hoverInk;
+                    iconNodes.forEach((node) => {{
+                        node.style.color = hoverInk;
+                        node.style.fill = hoverInk;
+                        node.style.stroke = hoverInk;
+                        node.style.opacity = "1";
+                        node.style.filter = iconFilter;
+                        node.style.webkitFilter = iconFilter;
+                    }});
+                }};
+
+                el.onmouseleave = () => {{
+                    el.style.color = ink;
+                    iconNodes.forEach((node) => {{
+                        node.style.color = ink;
+                        node.style.fill = ink;
+                        node.style.stroke = ink;
+                        node.style.opacity = "1";
+                        node.style.filter = iconFilter;
+                        node.style.webkitFilter = iconFilter;
+                    }});
+                }};
+            }}
+
+            function getHeaderControls(doc) {{
+                const selectors = [
+                    "header button",
+                    "header a",
+                    "header [role='button']",
+                    "[data-testid*='Header'] button",
+                    "[data-testid*='Header'] a",
+                    "[data-testid*='Toolbar'] button",
+                    "[data-testid*='Toolbar'] a",
+                ];
+
+                const seen = new Set();
+                const matches = [];
+
+                selectors.forEach((selector) => {{
+                    doc.querySelectorAll(selector).forEach((el) => {{
+                        const rect = el.getBoundingClientRect();
+                        if (rect.top < 140 && rect.right > (window.parent.innerWidth || window.innerWidth) - 520) {{
+                            if (!seen.has(el)) {{
+                                seen.add(el);
+                                matches.push(el);
+                            }}
+                        }}
+                    }});
+                }});
+
+                doc.querySelectorAll("button, a, [role='button']").forEach((el) => {{
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top < 140 && rect.right > (window.parent.innerWidth || window.innerWidth) - 520) {{
+                        const hasIcon = el.querySelector("svg, img");
+                        if (hasIcon && !seen.has(el)) {{
+                            seen.add(el);
+                            matches.push(el);
+                        }}
+                    }}
+                }});
+
+                return matches;
+            }}
+
+            function applyFix() {{
+                let doc = document;
+                try {{
+                    if (window.parent && window.parent.document) {{
+                        doc = window.parent.document;
+                    }}
+                }} catch (error) {{
+                    doc = document;
+                }}
+
+                getHeaderControls(doc).forEach(styleControl);
+            }}
+
+            applyFix();
+            setTimeout(applyFix, 250);
+            setTimeout(applyFix, 1000);
+            setTimeout(applyFix, 2500);
+
+            const observer = new MutationObserver(() => applyFix());
+            observer.observe(document.body, {{ childList: true, subtree: true }});
+
+            try {{
+                if (window.parent && window.parent.document && window.parent.document.body) {{
+                    const parentObserver = new MutationObserver(() => applyFix());
+                    parentObserver.observe(window.parent.document.body, {{ childList: true, subtree: true }});
+                }}
+            }} catch (error) {{
+                console.debug("Header runtime fix parent access unavailable.");
+            }}
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
@@ -920,6 +1050,7 @@ def render_about_page() -> None:
 def main() -> None:
     theme_mode = st.sidebar.radio("Appearance", ["Dark", "Light"], index=0)
     inject_styles(theme_mode)
+    inject_header_runtime_fix(theme_mode)
     predictor = load_predictor()
     metrics_payload = load_metrics()
 
