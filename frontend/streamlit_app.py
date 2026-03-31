@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 
@@ -9,6 +10,12 @@ import streamlit as st
 
 from app.core.config import PROJECT_ROOT, get_settings
 from app.services.predictor import PredictorService
+
+
+BANNER_PATH = PROJECT_ROOT / "Churn Prediction Engine.png"
+AUTHOR_IMAGE_PATH = PROJECT_ROOT / "frontend" / "assets" / "okon_prince.png"
+TESTING_PACK_PATH = PROJECT_ROOT / "artifacts" / "sample_outputs" / "model_testing_pack.csv"
+YELLOW_SCALE = ["#3B2D00", "#7A5C00", "#D7A700", "#F4C430", "#FFE27A"]
 
 
 st.set_page_config(
@@ -37,45 +44,148 @@ def load_metrics() -> dict:
         return json.load(file)
 
 
+@st.cache_data
+def load_testing_pack() -> pd.DataFrame:
+    if TESTING_PACK_PATH.exists():
+        return pd.read_csv(TESTING_PACK_PATH)
+    return pd.DataFrame()
+
+
+@st.cache_data
+def encode_image(path: str) -> str:
+    return base64.b64encode(Path(path).read_bytes()).decode("utf-8")
+
+
 def inject_styles() -> None:
     st.markdown(
         """
         <style>
         :root {
-            --bg: #f4f1ea;
-            --card: rgba(255,255,255,0.88);
-            --ink: #102a43;
-            --accent: #d97706;
-            --accent-soft: #ffe8b5;
-            --muted: #4f5d75;
+            --bg: #050505;
+            --bg-soft: #0d0d0d;
+            --card: rgba(18, 18, 18, 0.94);
+            --card-soft: rgba(25, 25, 25, 0.96);
+            --ink: #fff5bf;
+            --muted: #d8c77c;
+            --accent: #f4c430;
+            --accent-soft: rgba(244, 196, 48, 0.14);
+            --border: rgba(244, 196, 48, 0.32);
+            --shadow: rgba(244, 196, 48, 0.12);
         }
         .stApp {
             background:
-                radial-gradient(circle at top right, rgba(217,119,6,0.18), transparent 25%),
-                linear-gradient(180deg, #f7f3eb 0%, #f3efe7 100%);
+                radial-gradient(circle at top right, rgba(244, 196, 48, 0.18), transparent 22%),
+                radial-gradient(circle at bottom left, rgba(244, 196, 48, 0.10), transparent 28%),
+                linear-gradient(180deg, #050505 0%, #090909 100%);
             color: var(--ink);
         }
-        .hero {
-            padding: 1.5rem 1.75rem;
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #0a0a0a 0%, #131313 100%);
+            border-right: 1px solid var(--border);
+        }
+        [data-testid="stSidebar"] * {
+            color: var(--ink);
+        }
+        h1, h2, h3, h4, h5 {
+            color: var(--accent);
+            letter-spacing: 0.02em;
+        }
+        .hero-card, .content-card, .author-card, .footer-card {
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 24px;
-            background: linear-gradient(135deg, rgba(16,42,67,0.96), rgba(40,83,107,0.92));
-            color: white;
-            box-shadow: 0 20px 45px rgba(16,42,67,0.18);
+            box-shadow: 0 18px 40px var(--shadow);
+        }
+        .hero-card {
+            padding: 1.4rem 1.6rem;
+            margin-bottom: 1rem;
+        }
+        .content-card {
+            padding: 1.25rem 1.35rem;
             margin-bottom: 1rem;
         }
         .metric-card {
-            background: var(--card);
-            border: 1px solid rgba(16,42,67,0.08);
-            border-radius: 18px;
-            padding: 1rem 1.2rem;
-            box-shadow: 0 8px 24px rgba(16,42,67,0.08);
+            background: var(--card-soft);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+            min-height: 130px;
+        }
+        .metric-title {
+            font-size: 0.86rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.4rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.35rem;
+        }
+        .metric-note {
+            font-size: 0.95rem;
+            color: var(--ink);
+        }
+        .project-banner {
+            width: 100%;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.32);
+            margin-bottom: 1rem;
         }
         .recommendation-card {
-            background: rgba(255,255,255,0.9);
-            border-left: 6px solid var(--accent);
-            border-radius: 14px;
-            padding: 0.9rem 1rem;
-            margin-bottom: 0.65rem;
+            background: linear-gradient(90deg, rgba(244, 196, 48, 0.12), rgba(244, 196, 48, 0.03));
+            border-left: 5px solid var(--accent);
+            border-radius: 16px;
+            padding: 0.95rem 1rem;
+            margin-bottom: 0.7rem;
+            color: var(--ink);
+        }
+        .author-grid {
+            display: grid;
+            grid-template-columns: minmax(240px, 300px) 1fr;
+            gap: 1.6rem;
+            align-items: center;
+        }
+        .author-photo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .author-photo {
+            width: 100%;
+            max-width: 280px;
+            border-radius: 24px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+        }
+        .author-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+        .author-role {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        .footer-card {
+            padding: 1rem 1.2rem;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--muted);
+        }
+        .footer-card p {
+            margin: 0.18rem 0;
+        }
+        .caption-note {
+            color: var(--muted);
+            font-size: 0.95rem;
         }
         </style>
         """,
@@ -83,40 +193,110 @@ def inject_styles() -> None:
     )
 
 
-def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> None:
-    validation_metrics = predictor.model_info()["validation_metrics"]
+def render_banner() -> None:
+    if BANNER_PATH.exists():
+        banner_b64 = encode_image(str(BANNER_PATH))
+        st.markdown(
+            f"<img class='project-banner' src='data:image/png;base64,{banner_b64}' alt='Churn Prediction Engine banner' />",
+            unsafe_allow_html=True,
+        )
+
+
+def render_metric_card(title: str, value: str, note: str) -> None:
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-title">{title}</div>
+            <div class="metric-value">{value}</div>
+            <div class="metric-note">{note}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_footer() -> None:
     st.markdown(
         """
-        <div class="hero">
+        <div class="footer-card">
+            <p>© Okon Prince, 2026</p>
+            <p>This project is based on a customer churn dataset hosted on Kaggle.</p>
+            <p>Enquiries: okonp07@gmail.com</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> None:
+    model_info = predictor.model_info()
+    validation_metrics = model_info["validation_metrics"]
+
+    render_banner()
+    st.markdown(
+        """
+        <div class="hero-card">
             <h1>Production-Ready Churn Prediction System</h1>
-            <p>This app turns raw customer behavior into churn risk scores, confidence levels, explainability, and practical retention actions.</p>
+            <p>
+                This platform translates customer behavior into practical retention intelligence. It scores churn risk,
+                estimates confidence, surfaces business-friendly drivers, and recommends concrete actions teams can take
+                before valuable customers quietly disappear.
+            </p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     metric_columns = st.columns(4)
-    metric_columns[0].metric("Best Model", predictor.model_info()["best_model_name"])
-    metric_columns[1].metric("Weighted F1", f"{validation_metrics.get('f1_weighted', 0):.3f}")
-    metric_columns[2].metric("Accuracy", f"{validation_metrics.get('accuracy', 0):.3f}")
-    metric_columns[3].metric(
-        "QWK",
-        f"{validation_metrics.get('quadratic_weighted_kappa', validation_metrics.get('r2', 0)):.3f}",
+    with metric_columns[0]:
+        render_metric_card("Best Model", model_info["best_model_name"], "Selected after multi-model benchmarking.")
+    with metric_columns[1]:
+        render_metric_card("Weighted F1", f"{validation_metrics.get('f1_weighted', 0):.3f}", "Balances performance across the churn tiers.")
+    with metric_columns[2]:
+        render_metric_card("Accuracy", f"{validation_metrics.get('accuracy', 0):.3f}", "Holdout validation accuracy on unseen records.")
+    with metric_columns[3]:
+        render_metric_card(
+            "QWK",
+            f"{validation_metrics.get('quadratic_weighted_kappa', validation_metrics.get('r2', 0)):.3f}",
+            "Ordinal alignment between predicted and true risk levels.",
+        )
+
+    st.markdown(
+        """
+        <div class="content-card">
+            <h3>Why this system matters</h3>
+            <p>
+                Churn is costly because customers rarely announce that they are leaving. They reduce engagement,
+                complain more often, spend less, or simply stop returning. This solution helps teams detect those
+                warning signs early enough to intervene with meaningful, personalized retention actions.
+            </p>
+            <h3>How the solution works</h3>
+            <p>
+                The system validates incoming records, removes leakage-prone identifiers, engineers behavior and
+                lifecycle features, evaluates several candidate models, saves the best-performing artifact, and uses
+                that same artifact consistently for API and Streamlit inference.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.subheader("Why this system matters")
-    st.write(
-        "The model learns from behavior, complaints, loyalty signals, engagement depth, and lifecycle stage to predict who is most likely to slip away. The same artifact powers training, API inference, and this UI."
+    st.markdown(
+        """
+        <div class="content-card">
+            <h3>Detected modeling strategy</h3>
+            <p>{}</p>
+        </div>
+        """.format(model_info["task_detection"]["strategy_details"]["notes"]),
+        unsafe_allow_html=True,
     )
-
-    st.subheader("Modeling strategy")
-    task_detection = predictor.model_info()["task_detection"]
-    st.write(task_detection["strategy_details"]["notes"])
     st.json(metrics_payload)
 
 
 def render_prediction_page(predictor: PredictorService) -> None:
     st.subheader("Manual Customer Prediction")
+    st.markdown("<p class='caption-note'>Enter a full customer profile and the system will return risk, confidence, key drivers, and retention recommendations.</p>", unsafe_allow_html=True)
+
     with st.form("prediction_form"):
         col1, col2, col3 = st.columns(3)
         payload = {
@@ -184,11 +364,12 @@ def render_prediction_page(predictor: PredictorService) -> None:
 
     if submitted:
         result = predictor.predict_record(payload)
-        score_color = "#b91c1c" if result["risk_band"] == "High" else "#b45309" if result["risk_band"] == "Medium" else "#15803d"
+        score_color = "#ffde59" if result["risk_band"] == "Low" else "#f4c430" if result["risk_band"] == "Medium" else "#ff9f1c"
         st.markdown(
             f"""
-            <div class="metric-card">
-                <h3>Predicted Class: {result['predicted_class']} ({result['predicted_label']})</h3>
+            <div class="content-card">
+                <h3>Prediction Result</h3>
+                <p><strong>Predicted Class:</strong> {result['predicted_class']} ({result['predicted_label']})</p>
                 <p><strong>Risk Score:</strong> <span style="color:{score_color};">{result['risk_score']:.3f}</span></p>
                 <p><strong>Risk Band:</strong> {result['risk_band']}</p>
                 <p><strong>Confidence:</strong> {result['confidence'] if result['confidence'] is not None else 'N/A'}</p>
@@ -217,8 +398,12 @@ def render_prediction_page(predictor: PredictorService) -> None:
                 x="class",
                 y="probability",
                 color="probability",
-                color_continuous_scale="YlOrBr",
+                color_continuous_scale=YELLOW_SCALE,
                 title="Per-Class Probability Distribution",
+            ).update_layout(
+                paper_bgcolor="#111111",
+                plot_bgcolor="#111111",
+                font_color="#fff5bf",
             ),
             use_container_width=True,
         )
@@ -226,6 +411,26 @@ def render_prediction_page(predictor: PredictorService) -> None:
 
 def render_batch_page(predictor: PredictorService) -> None:
     st.subheader("Batch Scoring")
+    st.markdown(
+        "<p class='caption-note'>Upload a CSV of customer records or download the built-in 10-row testing pack to try the model immediately.</p>",
+        unsafe_allow_html=True,
+    )
+
+    testing_pack = load_testing_pack()
+    if not testing_pack.empty:
+        action_col, preview_col = st.columns([1, 1.4])
+        with action_col:
+            st.download_button(
+                label="Download Model Testing Pack",
+                data=testing_pack.to_csv(index=False).encode("utf-8"),
+                file_name="model_testing_pack.csv",
+                mime="text/csv",
+            )
+        with preview_col:
+            st.markdown("<p class='caption-note'>Testing pack contains 10 complete customer profiles with all required fields.</p>", unsafe_allow_html=True)
+        with st.expander("Preview testing pack"):
+            st.dataframe(testing_pack, use_container_width=True)
+
     upload = st.file_uploader("Upload a CSV file with customer records", type=["csv"])
     if upload is not None:
         frame = pd.read_csv(upload)
@@ -246,29 +451,27 @@ def render_insights_page(predictor: PredictorService) -> None:
     model_info = predictor.model_info()
     importance_frame = pd.DataFrame(model_info["global_feature_importance"])
 
-    st.plotly_chart(
-        px.histogram(
-            train_df,
-            x="churn_risk_score",
-            color="churn_risk_score",
-            title="Observed Churn Risk Distribution",
-            color_discrete_sequence=px.colors.sequential.Sunsetdark,
-        ),
-        use_container_width=True,
+    histogram = px.histogram(
+        train_df,
+        x="churn_risk_score",
+        color="churn_risk_score",
+        title="Observed Churn Risk Distribution",
+        color_discrete_sequence=["#f4c430", "#eab308", "#ca8a04", "#fde68a", "#facc15", "#f59e0b"],
     )
+    histogram.update_layout(paper_bgcolor="#111111", plot_bgcolor="#111111", font_color="#fff5bf")
+    st.plotly_chart(histogram, use_container_width=True)
 
-    st.plotly_chart(
-        px.bar(
-            importance_frame.head(12),
-            x="importance",
-            y="base_feature",
-            orientation="h",
-            color="importance",
-            color_continuous_scale="Tealgrn",
-            title="Top Global Feature Drivers",
-        ),
-        use_container_width=True,
+    importance_chart = px.bar(
+        importance_frame.head(12),
+        x="importance",
+        y="base_feature",
+        orientation="h",
+        color="importance",
+        color_continuous_scale=YELLOW_SCALE,
+        title="Top Global Feature Drivers",
     )
+    importance_chart.update_layout(paper_bgcolor="#111111", plot_bgcolor="#111111", font_color="#fff5bf")
+    st.plotly_chart(importance_chart, use_container_width=True)
 
     plots_dir = PROJECT_ROOT / "artifacts" / "plots"
     for image_name in ["confusion_matrix.png", "high_risk_calibration.png", "target_distribution.png"]:
@@ -278,23 +481,145 @@ def render_insights_page(predictor: PredictorService) -> None:
 
 
 def render_about_page() -> None:
-    st.subheader("About This Showcase")
-    st.write(
+    render_banner()
+    st.subheader("About")
+
+    st.markdown(
         """
-        This project demonstrates what an end-to-end productionized data science workflow looks like:
-        robust feature engineering, leakage prevention, model comparison, artifact versioning, inference services,
-        explainability, and business-oriented retention actions. It is designed to be both portfolio-ready and
-        stakeholder-demo friendly.
-        """
+        <div class="content-card">
+            <h3>Why churn prediction matters to businesses</h3>
+            <p>
+                Customer churn is one of the most expensive silent failures in business. Revenue does not usually
+                disappear all at once. It leaks away gradually as customers log in less often, spend less, complain
+                more frequently, or disengage after a poor experience. By the time the loss becomes obvious, the
+                relationship is often already damaged.
+            </p>
+            <p>
+                A strong churn prediction system gives decision-makers earlier visibility into that decline. It helps
+                teams prioritize outreach, reduce avoidable customer loss, target incentives more intelligently, and
+                improve service recovery before dissatisfaction becomes permanent.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.code(
+    st.markdown(
         """
-        python -m src.pipelines.training_pipeline
-        uvicorn app.api.main:app --reload
-        streamlit run frontend/streamlit_app.py
-        """.strip(),
-        language="bash",
+        <div class="content-card">
+            <h3>How this solution was built</h3>
+            <p>
+                The project was engineered as a full end-to-end machine learning system rather than a notebook-only
+                prototype. It begins with structured data validation, schema checks, missing-value review, and leakage
+                controls to ensure the model does not learn from personally identifying information such as customer
+                IDs, names, security numbers, or referral identifiers.
+            </p>
+            <p>
+                After validation, the pipeline performs production-safe preprocessing and feature engineering. That
+                includes tenure features from joining dates, visit-time signals from last activity timestamps, cleaned
+                login-frequency values, complaint indicators, dissatisfaction flags, loyalty-related wallet features,
+                engagement segments, and spend segments. These engineered features are used consistently in both
+                training and inference through the same saved pipeline objects.
+            </p>
+            <p>
+                Multiple candidate models were then benchmarked on the same transformed data. Because the target is an
+                ordered risk score rather than a simple yes-or-no churn label, the system automatically detected the
+                task as ordinal multiclass classification and used business-relevant validation metrics such as weighted
+                F1, macro F1, quadratic weighted kappa, ordinal MAE, one-vs-rest ROC-AUC, and PR-AUC to guide model
+                selection. The final model was persisted alongside metadata, metrics, plots, and sample outputs so the
+                deployed application can explain and reuse the exact trained artifact.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="content-card">
+            <h3>Key assumptions behind the model</h3>
+            <p>
+                The model assumes that historical customer behavior contains stable warning patterns that can be used to
+                estimate future churn risk. It assumes the provided churn risk score is a valid ordered business target,
+                that engagement and complaint signals are informative proxies for loyalty health, and that the dataset
+                snapshot is representative enough for deployment-style scoring. It also assumes that the strongest
+                interventions come from combining statistical model output with deterministic business rules, which is
+                why this solution pairs predictive scoring with recommendation logic instead of returning a bare number.
+            </p>
+            <p>
+                A further assumption is that human-readable explanations matter. In practice, business users need to
+                understand why a customer is risky, not just that they are risky. This is why the app translates model
+                drivers into retention language such as low engagement, long time since last login, unresolved
+                complaints, weak loyalty participation, and negative experience signals.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="content-card">
+            <h3>How this project is useful to humanity</h3>
+            <p>
+                At a human level, churn prediction is really about reducing avoidable relationship breakdowns between
+                people and the services they rely on. Better retention systems can lead to faster support recovery,
+                better user experience, less irrelevant blanket marketing, and more targeted assistance for customers
+                who are at risk of abandonment because of friction or dissatisfaction.
+            </p>
+            <p>
+                For organizations, that translates into healthier revenue, smarter resource allocation, and more
+                responsible decision support. For customers, it can mean better service, more relevant interventions,
+                and fewer ignored complaints. This project solves the practical problem of identifying who needs help,
+                when they need it, and what action is most likely to keep the relationship healthy.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if AUTHOR_IMAGE_PATH.exists():
+        author_image_b64 = encode_image(str(AUTHOR_IMAGE_PATH))
+        author_image_html = f"""
+        <div class="author-photo-wrap">
+            <img class="author-photo" src="data:image/png;base64,{author_image_b64}" alt="Okon Prince" />
+        </div>
+        """
+    else:
+        author_image_html = "<div class='author-photo-wrap'><p>Author image unavailable.</p></div>"
+
+    st.markdown(
+        f"""
+        <div class="author-card content-card">
+            <div class="author-grid">
+                <div>{author_image_html}</div>
+                <div>
+                    <h3>About the Author</h3>
+                    <div class="author-name">Okon Prince</div>
+                    <div class="author-role">AI Engineer &amp; Data Scientist | Senior Data Scientist at MIVA Open University</div>
+                    <p>
+                        I design and deploy end-to-end data systems that turn raw data into production-ready
+                        intelligence.
+                    </p>
+                    <p>
+                        My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, PySpark, SQL,
+                        Machine Learning, LLMs, and Transformers.
+                    </p>
+                    <p>
+                        My work spans risk scoring systems, A/B testing, traditional and AI-powered dashboards, RAG
+                        pipelines, predictive analytics, LLM-based solutions, and AI research.
+                    </p>
+                    <p>
+                        Currently, I work as a Senior Data Scientist in the department of Research and Development at
+                        MIVA Open University, where I carry out AI / ML research and build intelligent systems that
+                        drive analytics, decision support, and scalable AI innovation.
+                    </p>
+                    <p><em>I believe: models are trained, systems are engineered and impact is delivered.</em></p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -318,6 +643,8 @@ def main() -> None:
         render_insights_page(predictor)
     else:
         render_about_page()
+
+    render_footer()
 
 
 if __name__ == "__main__":

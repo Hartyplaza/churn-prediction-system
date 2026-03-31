@@ -12,5 +12,6 @@ artifacts/logs/
 artifacts/model/*.joblib
 !artifacts/model/churn_model_bundle.joblib
 artifacts/sample_outputs/*.csv
+!artifacts/sample_outputs/model_testing_pack.csv
 artifacts/sample_outputs/*.json
 data/processed/*.csv
