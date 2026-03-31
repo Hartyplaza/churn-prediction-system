@@ -375,6 +375,61 @@ def inject_styles(theme_mode: str) -> None:
         [data-testid="stWidgetLabel"] {{
             color: var(--widget-ink) !important;
         }}
+        div[data-baseweb="input"] > div,
+        div[data-baseweb="base-input"] > div,
+        div[data-baseweb="select"] > div,
+        div[data-baseweb="textarea"] > div {{
+            background: var(--widget-bg) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 10px 24px var(--shadow) !important;
+        }}
+        div[data-baseweb="input"] input,
+        div[data-baseweb="base-input"] input,
+        div[data-baseweb="select"] input,
+        div[data-baseweb="textarea"] textarea,
+        div[data-baseweb="select"] span {{
+            color: var(--widget-ink) !important;
+            -webkit-text-fill-color: var(--widget-ink) !important;
+        }}
+        div[data-baseweb="input"] input::placeholder,
+        div[data-baseweb="base-input"] input::placeholder,
+        div[data-baseweb="select"] input::placeholder,
+        div[data-baseweb="textarea"] textarea::placeholder {{
+            color: var(--widget-ink) !important;
+            -webkit-text-fill-color: var(--widget-ink) !important;
+            opacity: 0.68 !important;
+        }}
+        div[data-baseweb="select"] svg,
+        div[data-baseweb="input"] svg,
+        div[data-baseweb="base-input"] svg {{
+            color: var(--widget-ink) !important;
+            fill: var(--widget-ink) !important;
+            stroke: var(--widget-ink) !important;
+        }}
+        div[data-baseweb="input"] button,
+        div[data-baseweb="base-input"] button {{
+            background: var(--widget-bg-soft) !important;
+            color: var(--widget-ink) !important;
+            border-left: 1px solid var(--border) !important;
+        }}
+        div[data-baseweb="input"] button:hover,
+        div[data-baseweb="base-input"] button:hover {{
+            background: var(--widget-bg) !important;
+            color: var(--widget-ink) !important;
+        }}
+        [role="listbox"] {{
+            background: var(--widget-bg) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 14px 32px var(--shadow) !important;
+        }}
+        [role="option"] {{
+            background: var(--widget-bg) !important;
+            color: var(--widget-ink) !important;
+        }}
+        [role="option"]:hover {{
+            background: var(--widget-bg-soft) !important;
+            color: var(--widget-ink) !important;
+        }}
         [data-testid="stFileUploaderDropzone"] {{
             background: var(--widget-bg) !important;
             border: 1px solid var(--border) !important;
