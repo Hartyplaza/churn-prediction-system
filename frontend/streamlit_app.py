@@ -44,8 +44,8 @@ DARK_THEME = {
     "caption_ink": "#d8c77c",
     "code_bg": "rgba(244, 196, 48, 0.14)",
     "code_ink": "#fff5bf",
-    "glass_bg": "rgba(13, 13, 13, 0.48)",
-    "glass_bg_strong": "rgba(18, 18, 18, 0.78)",
+    "glass_bg": "rgba(13, 13, 13, 0.28)",
+    "glass_bg_strong": "rgba(18, 18, 18, 0.54)",
     "glass_shadow": "rgba(0, 0, 0, 0.35)",
     "primary_button_bg": "#f4c430",
     "primary_button_ink": "#050505",
@@ -85,8 +85,8 @@ LIGHT_THEME = {
     "caption_ink": "#050505",
     "code_bg": "#fff7de",
     "code_ink": "#050505",
-    "glass_bg": "rgba(255, 255, 255, 0.42)",
-    "glass_bg_strong": "rgba(255, 252, 237, 0.86)",
+    "glass_bg": "rgba(255, 255, 255, 0.22)",
+    "glass_bg_strong": "rgba(255, 252, 237, 0.48)",
     "glass_shadow": "rgba(184, 134, 11, 0.18)",
     "primary_button_bg": "#050505",
     "primary_button_ink": "#ffffff",
@@ -350,7 +350,7 @@ def inject_styles(theme_mode: str) -> None:
             position: fixed;
             top: 0.95rem;
             left: 1rem;
-            z-index: 999;
+            z-index: 10050;
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
@@ -368,10 +368,18 @@ def inject_styles(theme_mode: str) -> None:
             min-width: 4.4rem;
             padding: 0.48rem 0.9rem;
             border-radius: 999px;
-            color: var(--ink);
-            text-decoration: none;
+            color: var(--widget-ink);
+            text-decoration: none !important;
             border: 1px solid transparent;
+            white-space: nowrap;
+            -webkit-text-fill-color: var(--widget-ink);
             transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }}
+        .appearance-link:link,
+        .appearance-link:visited,
+        .appearance-link:hover,
+        .appearance-link:active {{
+            text-decoration: none !important;
         }}
         .appearance-link:hover {{
             background: var(--glass-bg);
@@ -394,27 +402,46 @@ def inject_styles(theme_mode: str) -> None:
             left: 50%;
             bottom: -1.55rem;
             transform: translateX(-50%);
-            width: min(92%, 1100px);
+            width: min(94%, 1220px);
             display: flex;
             justify-content: center;
-            gap: 0.8rem;
-            flex-wrap: wrap;
+            gap: 0.55rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding: 0 0.35rem 0.2rem;
+            scrollbar-width: none;
             z-index: 4;
+        }}
+        .banner-nav::-webkit-scrollbar {{
+            display: none;
         }}
         .glass-nav-button {{
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 9.6rem;
-            padding: 0.82rem 1.2rem;
+            min-width: 0;
+            flex: 1 1 0;
+            max-width: 10.6rem;
+            padding: 0.68rem 0.85rem;
             border-radius: 999px;
-            color: var(--ink);
-            text-decoration: none;
+            color: var(--widget-ink);
+            text-decoration: none !important;
             background: var(--glass-bg);
             border: 1px solid var(--border);
             box-shadow: 0 16px 36px var(--glass-shadow);
             backdrop-filter: blur(18px);
+            white-space: nowrap;
+            font-size: 0.94rem;
+            line-height: 1.1;
+            -webkit-text-fill-color: var(--widget-ink);
             transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }}
+        .glass-nav-button:link,
+        .glass-nav-button:visited,
+        .glass-nav-button:hover,
+        .glass-nav-button:active {{
+            text-decoration: none !important;
         }}
         .glass-nav-button:hover {{
             transform: translateY(-1px);
@@ -621,12 +648,14 @@ def inject_styles(theme_mode: str) -> None:
                 top: 0.75rem;
             }}
             .banner-nav {{
-                width: calc(100% - 1.5rem);
-                bottom: -2rem;
+                width: calc(100% - 1rem);
+                bottom: -1.8rem;
             }}
             .glass-nav-button {{
-                min-width: 8rem;
-                padding: 0.7rem 1rem;
+                flex: 0 0 auto;
+                max-width: none;
+                padding: 0.62rem 0.8rem;
+                font-size: 0.9rem;
             }}
         }}
         </style>
