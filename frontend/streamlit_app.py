@@ -38,7 +38,9 @@ DARK_THEME = {
     "score_medium": "#f4c430",
     "score_high": "#ff9f1c",
     "toolbar_bg": "rgba(22, 22, 22, 0.88)",
+    "toolbar_ink": "#fff5bf",
     "toolbar_hover": "rgba(244, 196, 48, 0.14)",
+    "toolbar_hover_ink": "#f4c430",
     "toolbar_shadow": "rgba(0, 0, 0, 0.35)",
 }
 LIGHT_THEME = {
@@ -63,7 +65,9 @@ LIGHT_THEME = {
     "score_medium": "#b8860b",
     "score_high": "#d97706",
     "toolbar_bg": "rgba(255, 249, 226, 0.96)",
+    "toolbar_ink": "#050505",
     "toolbar_hover": "rgba(184, 134, 11, 0.10)",
+    "toolbar_hover_ink": "#050505",
     "toolbar_shadow": "rgba(184, 134, 11, 0.18)",
 }
 
@@ -144,9 +148,21 @@ def inject_styles(theme_mode: str) -> None:
         button[data-testid^="baseButton-headerNoPadding"],
         [data-testid="stToolbar"] a,
         [data-testid="stHeaderActionElements"] a {{
-            color: var(--ink) !important;
-            fill: var(--ink) !important;
-            stroke: var(--ink) !important;
+            color: {toolbar_ink} !important;
+            fill: {toolbar_ink} !important;
+            stroke: {toolbar_ink} !important;
+        }}
+        [data-testid="stToolbar"] svg,
+        [data-testid="stHeaderActionElements"] svg,
+        [data-testid="stToolbar"] path,
+        [data-testid="stHeaderActionElements"] path,
+        button[data-testid^="baseButton-header"] svg,
+        button[data-testid^="baseButton-headerNoPadding"] svg,
+        button[data-testid^="baseButton-header"] path,
+        button[data-testid^="baseButton-headerNoPadding"] path {{
+            color: {toolbar_ink} !important;
+            fill: {toolbar_ink} !important;
+            stroke: {toolbar_ink} !important;
         }}
         [data-testid="stToolbar"] button:hover,
         [data-testid="stHeaderActionElements"] button:hover,
@@ -155,7 +171,25 @@ def inject_styles(theme_mode: str) -> None:
         [data-testid="stToolbar"] a:hover,
         [data-testid="stHeaderActionElements"] a:hover {{
             background: {toolbar_hover} !important;
-            color: var(--accent) !important;
+            color: {toolbar_hover_ink} !important;
+        }}
+        [data-testid="stToolbar"] button:hover *,
+        [data-testid="stHeaderActionElements"] button:hover *,
+        button[data-testid^="baseButton-header"]:hover *,
+        button[data-testid^="baseButton-headerNoPadding"]:hover *,
+        [data-testid="stToolbar"] a:hover *,
+        [data-testid="stHeaderActionElements"] a:hover *,
+        [data-testid="stToolbar"] button:hover svg,
+        [data-testid="stHeaderActionElements"] button:hover svg,
+        [data-testid="stToolbar"] button:hover path,
+        [data-testid="stHeaderActionElements"] button:hover path,
+        button[data-testid^="baseButton-header"]:hover svg,
+        button[data-testid^="baseButton-headerNoPadding"]:hover svg,
+        button[data-testid^="baseButton-header"]:hover path,
+        button[data-testid^="baseButton-headerNoPadding"]:hover path {{
+            color: {toolbar_hover_ink} !important;
+            fill: {toolbar_hover_ink} !important;
+            stroke: {toolbar_hover_ink} !important;
         }}
         [data-testid="stSidebar"] {{
             background: {sidebar};
