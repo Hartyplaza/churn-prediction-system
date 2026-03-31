@@ -262,6 +262,19 @@ def render_metric_card(title: str, value: str, note: str) -> None:
     )
 
 
+def render_model_summary_card(title: str, value: str, note: str) -> None:
+    st.markdown(
+        f"""
+        <div class="content-card">
+            <h3 style="margin-bottom:0.35rem;">{title}</h3>
+            <p style="font-size:1.45rem;font-weight:700;color:var(--accent);margin-bottom:0.35rem;">{value}</p>
+            <p style="margin-bottom:0;">{note}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_footer() -> None:
     st.markdown(
         """
@@ -278,6 +291,11 @@ def render_footer() -> None:
 def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> None:
     model_info = predictor.model_info()
     validation_metrics = model_info["validation_metrics"]
+    task_detection = model_info["task_detection"]
+    feature_summary = model_info["feature_summary"]
+    training_report = metrics_payload["training_validation_report"]
+    test_report = metrics_payload["test_validation_report"]
+    top_features = [item["base_feature"] for item in model_info["global_feature_importance"][:3]]
 
     render_banner()
     st.markdown(
@@ -333,10 +351,76 @@ def render_overview_page(predictor: PredictorService, metrics_payload: dict) -> 
             <h3>Detected modeling strategy</h3>
             <p>{}</p>
         </div>
-        """.format(model_info["task_detection"]["strategy_details"]["notes"]),
+        """.format(task_detection["strategy_details"]["notes"]),
         unsafe_allow_html=True,
     )
-    st.json(metrics_payload)
+
+    summary_columns = st.columns(4)
+    with summary_columns[0]:
+        render_model_summary_card(
+            "Task Type",
+            "Ordinal Multiclass" if task_detection["task_type"] == "ordinal_multiclass_classification" else task_detection["task_type"].replace("_", " ").title(),
+            f"{len(task_detection['classes'])} ordered classes detected in the target.",
+        )
+    with summary_columns[1]:
+        render_model_summary_card(
+            "Candidate Models",
+            str(metrics_payload["candidate_model_count"]),
+            "Benchmarked and compared on the same validation protocol.",
+        )
+    with summary_columns[2]:
+        render_model_summary_card(
+            "Top Drivers",
+            ", ".join(top_features),
+            "Most influential features in the final model.",
+        )
+    with summary_columns[3]:
+        render_model_summary_card(
+            "Reference Date",
+            feature_summary["reference_date"],
+            "Used to compute tenure consistently across training and inference.",
+        )
+
+    st.markdown(
+        """
+        <div class="content-card">
+            <h3>Model Summary</h3>
+            <p>
+                The final XGBoost model was chosen because it delivered the strongest balance of predictive performance
+                and ordinal consistency on unseen validation data. The model preserves the ordered meaning of churn risk
+                tiers instead of flattening them into a simple binary label.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("### Key Insights")
+    st.markdown(
+        f"""
+        - The target was automatically detected as an ordinal multiclass problem with classes `{task_detection['classes']}`.
+        - `XGBoost` was selected from `{metrics_payload['candidate_model_count']}` candidate models after model comparison.
+        - Validation performance was strong with `Weighted F1 = {validation_metrics.get('f1_weighted', 0):.3f}`, `Accuracy = {validation_metrics.get('accuracy', 0):.3f}`, and `QWK = {validation_metrics.get('quadratic_weighted_kappa', 0):.3f}`.
+        - The most important risk signals were `{top_features[0]}`, `{top_features[1]}`, and `{top_features[2]}`, which align with customer value, feedback, and membership behavior.
+        - The largest missing-data areas were `region_category ({training_report['null_summary']['region_category']})`, `points_in_wallet ({training_report['null_summary']['points_in_wallet']})`, and `preferred_offer_types ({training_report['null_summary']['preferred_offer_types']})`, and the pipeline handles them safely during training and scoring.
+        - Training and inference share the same engineered feature logic, including tenure, activity, complaints, wallet behavior, and engagement segmentation.
+        """,
+    )
+
+    with st.expander("Technical Details"):
+        detail_columns = st.columns(2)
+        with detail_columns[0]:
+            st.markdown("**Validation Metrics**")
+            st.json(validation_metrics)
+            st.markdown("**Task Detection**")
+            st.json(task_detection)
+        with detail_columns[1]:
+            st.markdown("**Training Data Validation**")
+            st.json(training_report)
+            st.markdown("**Test Data Validation**")
+            st.json(test_report)
+        st.markdown("**Feature Summary**")
+        st.json(feature_summary)
 
 
 def render_prediction_page(predictor: PredictorService, theme_mode: str) -> None:
