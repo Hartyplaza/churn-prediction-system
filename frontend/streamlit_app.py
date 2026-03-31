@@ -1353,7 +1353,7 @@ def render_insights_page(predictor: PredictorService, theme_mode: str) -> None:
 
 
 def render_about_page() -> None:
-    st.subheader("About")
+    st.subheader("About the project")
 
     st.markdown(
         """
