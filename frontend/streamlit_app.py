@@ -40,6 +40,7 @@ DARK_THEME = {
     "score_high": "#ff9f1c",
     "toolbar_bg": "rgba(22, 22, 22, 0.88)",
     "toolbar_ink": "#fff5bf",
+    "toolbar_filter": "none",
     "toolbar_hover": "rgba(244, 196, 48, 0.14)",
     "toolbar_hover_ink": "#f4c430",
     "toolbar_shadow": "rgba(0, 0, 0, 0.35)",
@@ -67,6 +68,7 @@ LIGHT_THEME = {
     "score_high": "#d97706",
     "toolbar_bg": "rgba(255, 249, 226, 0.96)",
     "toolbar_ink": "#050505",
+    "toolbar_filter": "brightness(0) saturate(100%)",
     "toolbar_hover": "rgba(184, 134, 11, 0.10)",
     "toolbar_hover_ink": "#050505",
     "toolbar_shadow": "rgba(184, 134, 11, 0.18)",
@@ -145,12 +147,18 @@ def inject_styles(theme_mode: str) -> None:
         }}
         [data-testid="stHeader"] button,
         [data-testid="stHeader"] a,
-        [data-testid="stHeader"] [role="button"] {{
+        [data-testid="stHeader"] [role="button"],
+        header button,
+        header a,
+        header [role="button"] {{
             color: {toolbar_ink} !important;
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
             opacity: 1 !important;
+            filter: {toolbar_filter} !important;
+            -webkit-filter: {toolbar_filter} !important;
+            -webkit-text-fill-color: {toolbar_ink} !important;
         }}
         [data-testid="stToolbar"] *,
         [data-testid="stHeaderActionElements"] *,
@@ -358,6 +366,9 @@ def inject_header_runtime_fix(theme_mode: str) -> None:
                 if (!el) return;
                 el.style.color = ink;
                 el.style.opacity = "1";
+                el.style.filter = iconFilter;
+                el.style.webkitFilter = iconFilter;
+                el.style.webkitTextFillColor = ink;
 
                 const iconNodes = el.querySelectorAll("svg, svg *, path, circle, rect, line, polyline, polygon, img");
                 iconNodes.forEach((node) => {{
@@ -371,6 +382,9 @@ def inject_header_runtime_fix(theme_mode: str) -> None:
 
                 el.onmouseenter = () => {{
                     el.style.color = hoverInk;
+                    el.style.filter = iconFilter;
+                    el.style.webkitFilter = iconFilter;
+                    el.style.webkitTextFillColor = hoverInk;
                     iconNodes.forEach((node) => {{
                         node.style.color = hoverInk;
                         node.style.fill = hoverInk;
@@ -383,6 +397,9 @@ def inject_header_runtime_fix(theme_mode: str) -> None:
 
                 el.onmouseleave = () => {{
                     el.style.color = ink;
+                    el.style.filter = iconFilter;
+                    el.style.webkitFilter = iconFilter;
+                    el.style.webkitTextFillColor = ink;
                     iconNodes.forEach((node) => {{
                         node.style.color = ink;
                         node.style.fill = ink;
